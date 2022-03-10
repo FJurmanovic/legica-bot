@@ -7,17 +7,20 @@ class ClientController {
 	constructor(private client: Client) {}
 
 	public register = (): void => {
+		this.sendMessage();
 		this.client.on("ready", (): void => {
-			cron.schedule("0 12 * * *", async () => {
-				const href = await getFirstHtml();
-				const { img, title } = await getImgTitle(href);
+			cron.schedule("0 12 * * *", this.sendMessage);
+		});
+	};
 
-				this.client.channels.cache.forEach((channel) => {
-					if (channel.type !== "text") return null;
-					const embeddedMessage = new MessageEmbed().setTitle(title).setImage(img);
-					(channel as TextChannel).send(embeddedMessage);
-				});
-			});
+	private sendMessage = async (): Promise<void> => {
+		const href = await getFirstHtml();
+		const { img, title } = await getImgTitle(href);
+
+		this.client.channels.cache.forEach((channel) => {
+			if (channel.type !== "text") return null;
+			const embeddedMessage = new MessageEmbed().setTitle(title).setImage(img);
+			(channel as TextChannel).send(embeddedMessage);
 		});
 	};
 }
