@@ -7,7 +7,6 @@ class ClientController {
 	constructor(private client: Client) {}
 
 	public register = (): void => {
-		this.sendMessage();
 		this.client.on("ready", (): void => {
 			cron.schedule("0 12 * * *", this.sendMessage);
 		});
