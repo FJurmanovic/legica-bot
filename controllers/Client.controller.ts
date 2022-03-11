@@ -1,4 +1,4 @@
-import { Client, MessageEmbed, TextChannel } from "discord.js";
+import { Client, Message, MessageEmbed, TextChannel } from "discord.js";
 import * as cron from "node-cron";
 import axios from "axios";
 import cheerio from "cheerio";
@@ -8,7 +8,7 @@ class ClientController {
 
 	public register = (): void => {
 		this.client.on("ready", (): void => {
-			cron.schedule("0 12 * * *", this.sendMessage);
+			cron.schedule("0 9 * * *", this.sendMessage);
 		});
 	};
 
@@ -19,7 +19,13 @@ class ClientController {
 		this.client.channels.cache.forEach((channel) => {
 			if (channel.type !== "text") return null;
 			const embeddedMessage = new MessageEmbed().setTitle(title).setImage(img);
-			(channel as TextChannel).send(embeddedMessage);
+			(channel as TextChannel).send(embeddedMessage).then((_message: Message) => {
+				_message.react("1");
+				_message.react("2");
+				_message.react("3");
+				_message.react("4");
+				_message.react("5");
+			});
 		});
 	};
 }
