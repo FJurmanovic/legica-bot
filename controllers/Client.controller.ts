@@ -16,16 +16,14 @@ class ClientController {
 		const href = await getFirstHtml();
 		const { img, title } = await getImgTitle(href);
 
-		this.client.channels.cache.forEach((channel) => {
+		this.client.channels.cache.forEach(async (channel) => {
 			if (channel.type !== "text") return null;
 			const embeddedMessage = new MessageEmbed().setTitle(title).setImage(img);
-			(channel as TextChannel).send(embeddedMessage).then((_message: Message) => {
-				_message.react("1");
-				_message.react("2");
-				_message.react("3");
-				_message.react("4");
-				_message.react("5");
-			});
+			const msg = await (channel as TextChannel).send(embeddedMessage);
+			const reactions = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
+			for (const reaction of reactions) {
+				await msg.react(reaction);
+			}
 		});
 	};
 }
