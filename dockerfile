@@ -9,6 +9,7 @@ COPY package.json package-lock.json ./
 
 # Install dependencies
 RUN npm install
+RUN npm run build
 
 # Copy the rest of project files into this image
 COPY . .
