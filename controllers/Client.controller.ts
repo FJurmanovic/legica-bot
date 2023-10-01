@@ -13,18 +13,22 @@ class ClientController {
 	};
 
 	private sendMessage = async (): Promise<void> => {
-		const href = await getFirstHtml();
-		const { img, title } = await getImgTitle(href);
-
-		this.client.channels.cache.forEach(async (channel) => {
-			if (channel.type !== "text") return null;
-			const embeddedMessage = new MessageEmbed().setTitle(title).setImage(img);
-			const msg = await (channel as TextChannel).send(embeddedMessage);
-			const reactions = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
-			for (const reaction of reactions) {
-				await msg.react(reaction);
-			}
-		});
+		try {
+			const href = await getFirstHtml();
+			const { img, title } = await getImgTitle(href);
+	
+			this.client.channels.cache.forEach(async (channel) => {
+				if (channel.type !== "text") return null;
+				const embeddedMessage = new MessageEmbed().setTitle(title).setImage(img);
+				const msg = await (channel as TextChannel).send(embeddedMessage);
+				const reactions = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
+				for (const reaction of reactions) {
+					await msg.react(reaction);
+				}
+			});
+		} catch (err) {
+			console.error(err);
+		}
 	};
 }
 
