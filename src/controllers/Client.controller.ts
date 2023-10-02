@@ -2,13 +2,15 @@ import { Client, MessageEmbed, TextChannel } from "discord.js";
 import * as cron from "cron";
 import axios from "axios";
 import cheerio from "cheerio";
-import { Express } from "express";
+import { Router } from "express";
 import { IController, Legica } from "@models";
-import { APP_VERSION, config } from "@constants";
+import { config } from "@constants";
+import basicAuth from "express-basic-auth";
 
 class ClientController implements IController {
 	private legicaTask: cron.CronJob | null = null;
-	constructor(private client: Client, private app: Express) {}
+	public path: string = "task";
+	constructor(private client: Client) {}
 
 	public register = (): void => {
 		this.client.on("ready", (): void => {
@@ -20,24 +22,30 @@ class ClientController implements IController {
 				"utc"
 			);
 		});
+	};
 
-		this.app.get("", (_, res) => {
+	public registerRouter = (): Router => {
+		const router = Router();
+
+		router.use(
+			basicAuth({
+				users: {
+					admin: config.PASSWORD,
+				},
+			})
+		);
+		router.get("", (_, res) => {
 			res.send(this.legicaTask?.running);
 		});
 
-		this.app.get("/next", (_, res) => {
+		router.get("next", (_, res) => {
 			if (!this.legicaTask?.running) {
 				res.status(400).send("Task is not running.");
 			} else {
 				res.send(this.legicaTask.nextDate().toISO());
 			}
 		});
-
-		this.app.get("/version", (_, res) => {
-			res.send(APP_VERSION);
-		});
-
-		this.app.post("/start", (_, res) => {
+		router.post("", (_, res) => {
 			if (this.legicaTask?.running) {
 				res.status(400).send("Task already running.");
 			} else {
@@ -45,8 +53,7 @@ class ClientController implements IController {
 				res.send("Task started.");
 			}
 		});
-
-		this.app.post("/stop", (_, res) => {
+		router.delete("", (_, res) => {
 			if (!this.legicaTask?.running) {
 				res.status(400).send("Task already stopped.");
 			} else {
@@ -55,7 +62,7 @@ class ClientController implements IController {
 			}
 		});
 
-		this.app.post("/post-next", async (_, res) => {
+		router.post("send-latest", async (_, res) => {
 			try {
 				await this.sendNextMessage();
 				res.send(true);
@@ -64,7 +71,7 @@ class ClientController implements IController {
 			}
 		});
 
-		this.app.post("/post", async (req, res) => {
+		router.post("send", async (req, res) => {
 			try {
 				const url = req.body.url;
 				await this.sendMessage(url);
@@ -73,6 +80,7 @@ class ClientController implements IController {
 				res.status(400).send(err);
 			}
 		});
+		return router;
 	};
 
 	private sendNextMessage = async (): Promise<void> => {

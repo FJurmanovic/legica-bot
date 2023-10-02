@@ -1,0 +1,154 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+      "title": "Legica Bot API",
+      "license": {
+        "name": "Apache 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+      },
+      "version": "0.7.0"
+    },
+    "tags": [
+      {
+        "name": "api",
+        "description": "API information"
+      },
+      {
+        "name": "task",
+        "description": "Everything about the task"
+      }
+    ],
+    "paths": {
+      "/version": {
+        "get": {
+          "tags": [
+            "api"
+          ],
+          "summary": "Display current API version.",
+          "description": "Displays the current API version defined in package.json.",
+          "responses": {
+            "200": {
+              "description": "Successful operation"
+            }
+          }
+        }
+      },
+      "/task": {
+        "get": {
+          "tags": [
+            "task"
+          ],
+          "summary": "Check if task is running.",
+          "description": "Retrieve the current state of scheduled task.",
+          "responses": {
+            "200": {
+              "description": "Successful operation"
+            }
+          }
+        },
+        "post": {
+          "tags": [
+            "task"
+          ],
+          "summary": "Start task if it is not running.",
+          "description": "Starts the task if it is not currently running.",
+          "responses": {
+            "200": {
+              "description": "Task started."
+            },
+            "400": {
+              "description": "Task already running."
+            }
+          }
+        },
+        "delete": {
+          "tags": [
+            "task"
+          ],
+          "summary": "Stop task if it is running.",
+          "description": "Stops the task if it is currently running.",
+          "responses": {
+            "200": {
+              "description": "Task stopped."
+            },
+            "400": {
+              "description": "Task already stopped."
+            }
+          }
+        }
+      },
+      "/task/next": {
+        "get": {
+          "tags": [
+            "task"
+          ],
+          "summary": "Check when the task is scheduled due next.",
+          "description": "Retrieve the datetime when task is scheduled to execute.",
+          "responses": {
+            "200": {
+              "description": "Next datetime"
+            },
+            "400": {
+              "description": "Task is not running."
+            }
+          }
+        }
+      },
+      "/task/send-latest": {
+        "post": {
+          "tags": [
+            "task"
+          ],
+          "summary": "Send latest post of legica dana.",
+          "description": "Sends latest post of legica dana to all discord channels.",
+          "responses": {
+            "200": {
+              "description": "Confirmation."
+            }
+          }
+        }
+      },
+      "/task/send": {
+        "post": {
+          "tags": [
+            "task"
+          ],
+          "summary": "Send post of legica dana.",
+          "description": "Sends provided post of legica dana to all discord channels.",
+          "requestBody": {
+            "description": "URL",
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Legica"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Confirmation."
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "Legica": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string",
+              "format": "string",
+              "example": "https://sib.net.hr/legica-dana/4390659/legica-dana-2992023/"
+            }
+          },
+          "xml": {
+            "name": "order"
+          }
+        }
+      }
+    }
+  }
