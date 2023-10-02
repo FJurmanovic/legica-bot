@@ -9,7 +9,7 @@ import basicAuth from "express-basic-auth";
 
 class ClientController implements IController {
 	private legicaTask: cron.CronJob | null = null;
-	public path: string = "task";
+	public path: string = "/task";
 	constructor(private client: Client) {}
 
 	public register = (): void => {
@@ -34,18 +34,11 @@ class ClientController implements IController {
 				},
 			})
 		);
-		router.get("", (_, res) => {
+		router.get("/", (_, res) => {
 			res.send(this.legicaTask?.running);
 		});
 
-		router.get("next", (_, res) => {
-			if (!this.legicaTask?.running) {
-				res.status(400).send("Task is not running.");
-			} else {
-				res.send(this.legicaTask.nextDate().toISO());
-			}
-		});
-		router.post("", (_, res) => {
+		router.post("/", (_, res) => {
 			if (this.legicaTask?.running) {
 				res.status(400).send("Task already running.");
 			} else {
@@ -53,7 +46,8 @@ class ClientController implements IController {
 				res.send("Task started.");
 			}
 		});
-		router.delete("", (_, res) => {
+
+		router.delete("/", (_, res) => {
 			if (!this.legicaTask?.running) {
 				res.status(400).send("Task already stopped.");
 			} else {
@@ -62,7 +56,15 @@ class ClientController implements IController {
 			}
 		});
 
-		router.post("send-latest", async (_, res) => {
+		router.get("/next", (_, res) => {
+			if (!this.legicaTask?.running) {
+				res.status(400).send("Task is not running.");
+			} else {
+				res.send(this.legicaTask.nextDate().toISO());
+			}
+		});
+
+		router.post("/send-latest", async (_, res) => {
 			try {
 				await this.sendNextMessage();
 				res.send(true);
@@ -71,7 +73,7 @@ class ClientController implements IController {
 			}
 		});
 
-		router.post("send", async (req, res) => {
+		router.post("/send", async (req, res) => {
 			try {
 				const url = req.body.url;
 				await this.sendMessage(url);

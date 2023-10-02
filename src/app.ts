@@ -47,7 +47,7 @@ app.get(
 	})
 );
 
-app.get("version", (_, res) => {
+app.get("/version", (_, res) => {
 	res.send(APP_VERSION);
 });
 
