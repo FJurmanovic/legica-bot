@@ -5,6 +5,16 @@
         "strict": true,
         "outDir": "dist",
         "sourceMap": true,
-        "resolveJsonModule": true
-    }
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+        "baseUrl": "./src/",
+        "paths": {
+            "@common": ["common"],
+            "@constants": ["constants"],
+            "@controllers": ["controllers"],
+            "@core": ["core"],
+            "@modules": ["modules"],
+            "@models": ["models"],
+        }
+    },
 }

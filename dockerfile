@@ -1,5 +1,5 @@
-# Use Node 16 alpine as parent image
-FROM node:16-alpine
+# Use oven/bun as parent image
+FROM oven/bun:latest
 
 # Change the working directory on the Docker image to /app
 WORKDIR /app
@@ -8,11 +8,10 @@ WORKDIR /app
 COPY . .
 
 # Install dependencies
-RUN npm install
-RUN npm run build
+RUN bun install
 
 # Expose application port
-# EXPOSE 3000
+EXPOSE 3000
 
 # Start the application
-CMD npm start
+CMD bun start
