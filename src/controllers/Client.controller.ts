@@ -4,7 +4,7 @@ import axios from "axios";
 import cheerio from "cheerio";
 import { Express } from "express";
 import { IController, Legica } from "@models";
-import { config } from "@constants";
+import { APP_VERSION, config } from "@constants";
 
 class ClientController implements IController {
 	private legicaTask: cron.CronJob | null = null;
@@ -25,6 +25,18 @@ class ClientController implements IController {
 			res.send(this.legicaTask?.running);
 		});
 
+		this.app.get("/next", (_, res) => {
+			if (!this.legicaTask?.running) {
+				res.status(400).send("Task is not running.");
+			} else {
+				res.send(this.legicaTask.nextDate().toISO());
+			}
+		});
+
+		this.app.get("/version", (_, res) => {
+			res.send(APP_VERSION);
+		});
+
 		this.app.post("/start", (_, res) => {
 			if (this.legicaTask?.running) {
 				res.status(400).send("Task already running.");
@@ -40,14 +52,6 @@ class ClientController implements IController {
 			} else {
 				this.legicaTask.stop();
 				res.send("Task stopped.");
-			}
-		});
-
-		this.app.get("/next", (_, res) => {
-			if (!this.legicaTask?.running) {
-				res.status(400).send("Task is not running.");
-			} else {
-				res.send(this.legicaTask.nextDate().toISO());
 			}
 		});
 
