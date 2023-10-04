@@ -1,1 +1,3 @@
-export { default as Chat } from "./chat";
+export { getFirstHtml } from "./getFirstHtml";
+export { getImgTitle } from "./getImgTitle";
+export { sendDiscordMessage, sendNextMessage } from "./sendDiscordMessage";
