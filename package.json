@@ -1,6 +1,6 @@
 {
   "name": "legica-dana",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "main": "src/app.ts",
   "scripts": {
     "start": "bun src/app.ts"
@@ -8,12 +8,12 @@
   "author": "Fran Jurmanović <fjurma12@outlook.com>",
   "license": "MIT",
   "dependencies": {
+    "@elysiajs/cron": "^0.7.0",
     "@elysiajs/static": "^0.7.1",
     "@elysiajs/swagger": "^0.7.3",
     "axios": "^0.26.0",
     "body-parser": "^1.20.2",
     "cheerio": "^1.0.0-rc.10",
-    "cron": "^3.0.0",
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
     "elysia": "^0.7.15",

@@ -1,12 +1,12 @@
 import { Client } from "discord.js";
 import { config } from "@constants";
-import { CronJob } from "cron";
 import { sendDiscordMessage, sendNextMessage } from "@common";
 import { Elysia, t } from "elysia";
 import { swagger } from "@elysiajs/swagger";
-import { basicAuth } from "@core";
+import { basicAuth, BasicAuthError } from "@core";
 import pino from "pino";
 import staticPlugin from "@elysiajs/static";
+import cron from "@elysiajs/cron";
 
 const client: Client = new Client();
 
@@ -23,27 +23,39 @@ const logger = pino(
 );
 
 const taskPlugin = new Elysia({ prefix: "/job" })
-	.state("job", null as CronJob | null)
-	.onStart(({ store }) => {
-		client.on("ready", (): void => {
-			if (store.job) {
-				store.job.stop();
-			}
-			store.job = new CronJob(
-				config.CRON_LEGICA,
-				() => sendNextMessage(client),
-				null,
-				true,
-				"utc"
-			);
-		});
-	})
-	.onBeforeHandle(({ store: { job }, set }) => {
-		if (!job) {
-			set.status = 400;
-			return "Job is not running.";
+	.use(
+		cron({
+			name: "job",
+			pattern: config.CRON_LEGICA,
+			run: () => sendNextMessage(client),
+			paused: true,
+			timezone: config.TIMEZONE,
+		})
+	)
+	.onStart(
+		({
+			store: {
+				cron: { job },
+			},
+		}) => {
+			client.on("ready", (): void => {
+				job.resume();
+			});
 		}
-	})
+	)
+	.onBeforeHandle(
+		({
+			store: {
+				cron: { job },
+			},
+			set,
+		}) => {
+			if (job.isStopped()) {
+				set.status = 400;
+				return "Job is not running.";
+			}
+		}
+	)
 	.use(
 		basicAuth({
 			users: [
@@ -55,26 +67,65 @@ const taskPlugin = new Elysia({ prefix: "/job" })
 			errorMessage: "Unauthorized",
 		})
 	)
-	.get("/", ({ store: { job } }) => ({
-		running: job?.running ?? false,
-		next: job?.nextDate().toISO(),
-	}))
-	.post("/", ({ store: { job }, set }) => {
-		if (job?.running) {
-			set.status = 400;
-			return "Task already running";
+	.get(
+		"/",
+		({
+			store: {
+				cron: { job },
+			},
+		}) => ({
+			running: job.isRunning() ?? false,
+			stopped: job.isStopped() ?? false,
+			next: job.nextRun()?.toISOString(),
+		}),
+		{
+			detail: {
+				summary: "Get CRON job status",
+			},
 		}
-		job?.start();
-		return "Task started";
-	})
-	.delete("/", ({ store: { job }, set }) => {
-		if (!job?.running) {
-			set.status = 400;
-			return "Task already stopped";
+	)
+	.post(
+		"/",
+		({
+			store: {
+				cron: { job },
+			},
+			set,
+		}) => {
+			if (job.isRunning()) {
+				set.status = 400;
+				return "Job already running";
+			}
+			job.resume();
+			return "Job started";
+		},
+		{
+			detail: {
+				summary: "Start CRON job if it is not running",
+			},
 		}
-		job?.stop();
-		return "Task stopped";
-	})
+	)
+	.delete(
+		"/",
+		({
+			store: {
+				cron: { job },
+			},
+			set,
+		}) => {
+			if (!job.isRunning()) {
+				set.status = 400;
+				return "Job already paused";
+			}
+			job.pause();
+			return "Job paused";
+		},
+		{
+			detail: {
+				summary: "Pause CRON job if it is not paused",
+			},
+		}
+	)
 	.post(
 		"/send",
 		async ({ set, body }) => {
@@ -95,18 +146,42 @@ const taskPlugin = new Elysia({ prefix: "/job" })
 			body: t.Object({
 				url: t.String(),
 			}),
+			detail: {
+				summary: "Send legica-dana post to discord channels",
+			},
 		}
 	)
-	.get("/log", () => Bun.file("app.log"));
-
-client.login(config.TOKEN);
-
+	.get("/log", () => Bun.file("app.log"), {
+		detail: {
+			summary: "Get the error log",
+		},
+	});
 const app = new Elysia()
-	.onError(({ error }) => {
-		logger.error(error);
-		return new Response(error.toString());
+	.error({ BASIC_AUTH_ERROR: BasicAuthError })
+	.onError(({ error, code }) => {
+		switch (code) {
+			case "BASIC_AUTH_ERROR":
+				return new Response(error.message, {
+					status: 401,
+					headers: {
+						"WWW-Authenticate": `Basic${
+							config.realm ? ` realm="${config.realm}"` : ""
+						}`,
+					},
+				});
+			case "NOT_FOUND":
+				return new Response(error.message, {
+					status: 404,
+				});
+			default:
+				logger.error(error);
+		}
 	})
-	.get("/", () => config.APP_VERSION)
+	.get("/", () => config.APP_VERSION, {
+		detail: {
+			summary: "Get current API version",
+		},
+	})
 	.use(
 		swagger({
 			documentation: {
@@ -114,6 +189,14 @@ const app = new Elysia()
 					title: "Legica Bot",
 					version: config.APP_VERSION,
 				},
+				security: [
+					{
+						type: ["basic"],
+					},
+				],
+			},
+			swaggerOptions: {
+				withCredentials: true,
 			},
 		})
 	)
@@ -121,6 +204,7 @@ const app = new Elysia()
 	.use(taskPlugin)
 	.listen(config.PORT);
 
+client.login(config.TOKEN);
 console.log(
-	`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
+	`🦊 Elysia is running at http://${app.server?.hostname}:${app.server?.port}`
 );

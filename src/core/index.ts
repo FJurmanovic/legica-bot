@@ -1,1 +1,1 @@
-export { basicAuth } from "./basicAuth";
+export { basicAuth, BasicAuthError } from "./basicAuth";

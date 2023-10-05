@@ -22,7 +22,6 @@ export interface BasicAuthConfig {
 
 export const basicAuth = (config: BasicAuthConfig) =>
 	new Elysia({ name: "basic-auth", seed: config })
-		.error({ BASIC_AUTH_ERROR: BasicAuthError })
 		.derive((ctx) => {
 			const authorization = ctx.headers?.authorization;
 			if (!authorization) return { basicAuth: { isAuthed: false, username: "" } };
@@ -40,19 +39,8 @@ export const basicAuth = (config: BasicAuthConfig) =>
 				!isPathExcluded(ctx.path, config.exclude) &&
 				ctx.request &&
 				ctx.request.method !== "OPTIONS"
-			)
+			) {
 				throw new BasicAuthError(config.errorMessage ?? "Unauthorized");
-		})
-		.onError((ctx) => {
-			if (ctx.code === "BASIC_AUTH_ERROR") {
-				return new Response(ctx.error.message, {
-					status: 401,
-					headers: {
-						"WWW-Authenticate": `Basic${
-							config.realm ? ` realm="${config.realm}"` : ""
-						}`,
-					},
-				});
 			}
 		});
 

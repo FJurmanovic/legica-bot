@@ -5,6 +5,7 @@ declare global {
 			PORT: string;
 			CRON_LEGICA: string;
 			PASSWORD: string;
+			TIMEZONE: string;
 		}
 	}
 }
