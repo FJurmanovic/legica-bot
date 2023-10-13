@@ -17,6 +17,7 @@ const config: ProjectConfig = {
 	APP_VERSION: version,
 	LEGICA_URL: "https://sib.net.hr/legica-dana",
 	TIMEZONE: process.env.TIMEZONE || "utc",
+	LEGICA_DATE_FORMAT: process.env.LEGICA_DATE_FORMAT || "DD.MM.YYYY",
 };
 
 export { config };

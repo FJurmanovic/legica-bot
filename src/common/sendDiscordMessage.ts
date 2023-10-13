@@ -1,12 +1,31 @@
 import { getFirstHtml, getImgTitle } from "@common";
+import { config } from "@constants";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import { Client, MessageEmbed, TextChannel } from "discord.js";
+
+dayjs.extend(customParseFormat);
+
+const dateRegex = /\d{1,2}.\d{1,2}.\d{4}/g;
 
 export async function sendDiscordMessage(
 	client: Client,
-	url: string
+	url: string,
+	dateCheck?: dayjs.Dayjs
 ): Promise<void> {
 	if (!url) return;
 	const { img, title } = await getImgTitle(url);
+
+	if (dateCheck) {
+		const date = dateRegex.exec(title)?.[0];
+		const dayjsDate = dayjs(date, config.LEGICA_DATE_FORMAT);
+		if (!dateCheck.isSame(dayjsDate, "D"))
+			throw new Error(
+				`Post failed date check, date from post ${date}, date checked ${dateCheck.format(
+					config.LEGICA_DATE_FORMAT
+				)}`
+			);
+	}
 
 	client.channels.cache.forEach(async (channel) => {
 		try {
@@ -39,10 +58,6 @@ export async function sendDiscordMessage(
 }
 
 export async function sendNextMessage(client: Client): Promise<void> {
-	try {
-		const href = await getFirstHtml();
-		await sendDiscordMessage(client, href);
-	} catch (err) {
-		console.error(err);
-	}
+	const href = await getFirstHtml();
+	await sendDiscordMessage(client, href, dayjs());
 }

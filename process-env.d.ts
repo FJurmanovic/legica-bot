@@ -6,6 +6,7 @@ declare global {
 			CRON_LEGICA: string;
 			PASSWORD: string;
 			TIMEZONE: string;
+			LEGICA_DATE_FORMAT: string;
 		}
 	}
 }

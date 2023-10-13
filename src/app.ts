@@ -22,12 +22,20 @@ const logger = pino(
 	fileTransport
 );
 
+async function jobRunner() {
+	try {
+		await sendNextMessage(client);
+	} catch (err) {
+		logger.error(err);
+	}
+}
+
 const taskPlugin = new Elysia({ prefix: "/job" })
 	.use(
 		cron({
 			name: "job",
 			pattern: config.CRON_LEGICA,
-			run: () => sendNextMessage(client),
+			run: jobRunner,
 			paused: true,
 			timezone: config.TIMEZONE,
 		})
@@ -143,9 +151,11 @@ const taskPlugin = new Elysia({ prefix: "/job" })
 			}
 		},
 		{
-			body: t.Object({
-				url: t.String(),
-			}),
+			body: t.Optional(
+				t.Object({
+					url: t.Optional(t.String()),
+				})
+			),
 			detail: {
 				summary: "Send legica-dana post to discord channels",
 			},
