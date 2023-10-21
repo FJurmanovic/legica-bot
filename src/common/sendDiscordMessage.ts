@@ -6,8 +6,6 @@ import { Client, MessageEmbed, TextChannel } from "discord.js";
 
 dayjs.extend(customParseFormat);
 
-const dateRegex = /\d{1,2}.\d{1,2}.\d{4}/g;
-
 export async function sendDiscordMessage(
 	client: Client,
 	url: string,
@@ -17,6 +15,7 @@ export async function sendDiscordMessage(
 	const { img, title } = await getImgTitle(url);
 
 	if (dateCheck) {
+		const dateRegex = /\d{1,2}.\d{1,2}.\d{4}/g;
 		const date = dateRegex.exec(title)?.[0];
 		const dayjsDate = dayjs(date, config.LEGICA_DATE_FORMAT);
 		if (!dateCheck.isSame(dayjsDate, "D"))
