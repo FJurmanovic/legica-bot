@@ -29,6 +29,55 @@ async function jobRunner() {
 		logger.error(err);
 	}
 }
+const botPlugin = new Elysia({ prefix: "/bot" })
+	.use(
+		basicAuth({
+			users: [
+				{
+					username: "admin",
+					password: config.PASSWORD,
+				},
+			],
+			errorMessage: "Unauthorized",
+		})
+	)
+	.get(
+		"/",
+		() => ({
+			uptime: client.uptime,
+			readyAt: client.readyAt,
+			readyTimestamp: client.readyTimestamp,
+		}),
+		{
+			detail: {
+				summary: "Get BOT status",
+			},
+		}
+	)
+	.post(
+		"/",
+		() => {
+			client.login(config.TOKEN);
+			return "Bot logged in started";
+		},
+		{
+			detail: {
+				summary: "Start BOT if it is not running",
+			},
+		}
+	)
+	.delete(
+		"/",
+		() => {
+			client.destroy();
+			return "Bot logged out";
+		},
+		{
+			detail: {
+				summary: "Stops the BOT.",
+			},
+		}
+	);
 
 const taskPlugin = new Elysia({ prefix: "/job" })
 	.use(
@@ -138,7 +187,7 @@ const taskPlugin = new Elysia({ prefix: "/job" })
 		"/send",
 		async ({ set, body }) => {
 			try {
-				const url = body.url;
+				const url = body?.url;
 				if (url) {
 					await sendDiscordMessage(client, url);
 				} else {
@@ -212,6 +261,7 @@ const app = new Elysia()
 	)
 	.use(staticPlugin())
 	.use(taskPlugin)
+	.use(botPlugin)
 	.listen(config.PORT);
 
 client.login(config.TOKEN);
