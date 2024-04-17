@@ -3,7 +3,7 @@
 	"version": "2.0.6",
 	"main": "src/app.ts",
 	"scripts": {
-		"start": "bun src/app.ts"
+		"start": "bun run src/app.ts"
 	},
 	"author": "Fran Jurmanović <fjurma12@outlook.com>",
 	"license": "MIT",
