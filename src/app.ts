@@ -258,7 +258,6 @@ const app = new Elysia()
 			},
 		})
 	)
-	.use(staticPlugin())
 	.use(taskPlugin)
 	.use(botPlugin)
 	.listen(config.PORT);
