@@ -5,7 +5,6 @@ import { Elysia, t } from "elysia";
 import { swagger } from "@elysiajs/swagger";
 import { basicAuth, BasicAuthError } from "@core";
 import pino from "pino";
-import staticPlugin from "@elysiajs/static";
 import cron from "@elysiajs/cron";
 
 const client: Client = new Client();
