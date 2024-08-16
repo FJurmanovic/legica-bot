@@ -195,7 +195,8 @@ const taskPlugin = new Elysia({ prefix: "/job" })
 				return true;
 			} catch (err) {
 				set.status = 400;
-				return err;
+				logger.error(err);
+				return false;
 			}
 		},
 		{

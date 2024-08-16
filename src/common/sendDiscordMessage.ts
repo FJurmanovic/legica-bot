@@ -11,7 +11,6 @@ export async function sendDiscordMessage(
 	url: string,
 	dateCheck?: dayjs.Dayjs
 ): Promise<void> {
-	if (!url) return;
 	const { img, title } = await getImgTitle(url);
 
 	if (dateCheck) {
@@ -26,7 +25,7 @@ export async function sendDiscordMessage(
 			);
 	}
 
-	client.channels.cache.forEach(async (channel) => {
+	const promises = client.channels.cache.map(async (channel) => {
 		try {
 			if (channel.type !== "text") return null;
 			const embeddedMessage = new MessageEmbed().setTitle(title).setImage(img);
@@ -50,13 +49,16 @@ export async function sendDiscordMessage(
 					console.error(`Reaction ${reaction} to channel ${channel.id} failed.`);
 				}
 			}
-		} catch {
+		} catch (err) {
 			console.error(`Message to channel ${channel.id} failed.`);
+			throw err;
 		}
 	});
+	await Promise.all(promises);
 }
 
 export async function sendNextMessage(client: Client): Promise<void> {
 	const href = await getFirstHtml();
+	if (!href) throw new Error("URL cannot be empty!");
 	await sendDiscordMessage(client, href, dayjs());
 }

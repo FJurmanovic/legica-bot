@@ -7,8 +7,9 @@ export async function getImgTitle(href: string): Promise<Legica> {
 	const html = response.data;
 	const $ = cheerio.load(html);
 
-	const title = $(".Article-inner > h1").text();
-	const { src: img } = $(".Article-media > img").attr() || {};
+	const title = $(".article-title-container > h1").text();
+	const src = $(".image-holder", ".article-content").find("img").attr("src");
+	if (!src) throw new Error(`Image not found at ${href}.`);
 
-	return { title, img };
+	return { title, img: src };
 }
