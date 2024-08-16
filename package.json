@@ -1,6 +1,6 @@
 {
 	"name": "legica-dana",
-	"version": "2.1.0",
+	"version": "2.1.1",
 	"main": "src/app.ts",
 	"scripts": {
 		"start": "bun run src/app.ts",
