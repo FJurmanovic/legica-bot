@@ -5,6 +5,7 @@ dotenv();
 type Config = {
 	APP_VERSION: string;
 	LEGICA_URL: string;
+	RETRY_ATTEMPTS: number;
 };
 
 export type ProjectConfig = Config & NodeJS.ProcessEnv;
@@ -18,6 +19,7 @@ const config: ProjectConfig = {
 	LEGICA_URL: "https://sib.net.hr/legica-dana",
 	TIMEZONE: process.env.TIMEZONE || "utc",
 	LEGICA_DATE_FORMAT: process.env.LEGICA_DATE_FORMAT || "D.M.YYYY",
+	RETRY_ATTEMPTS: parseInt(process.env.RETRY_ATTEMPTS || "3", 10),
 };
 
 export { config };

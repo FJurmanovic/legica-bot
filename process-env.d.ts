@@ -7,6 +7,7 @@ declare global {
 			PASSWORD: string;
 			TIMEZONE: string;
 			LEGICA_DATE_FORMAT: string;
+			RETRY_ATTEMPTS: string;
 		}
 	}
 }

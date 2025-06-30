@@ -25,7 +25,18 @@ async function jobRunner() {
 	try {
 		await sendNextMessage(client);
 	} catch (err) {
-		logger.error(err);
+		// Log detailed error information, including retry attempts
+		if (err instanceof Error && err.message.includes("Failed after")) {
+			logger.error({
+				msg: "All retry attempts failed in job runner",
+				error: err.message,
+			});
+		} else {
+			logger.error({
+				msg: "Error in job runner, no retries attempted",
+				error: err,
+			});
+		}
 	}
 }
 const botPlugin = new Elysia({ prefix: "/bot" })
@@ -93,6 +104,14 @@ const taskPlugin = new Elysia({ prefix: "/job" })
 			store: {
 				cron: { job },
 			},
+		}: {
+			store: {
+				cron: {
+					job: {
+						resume: () => void;
+					};
+				};
+			};
 		}) => {
 			client.on("ready", (): void => {
 				job.resume();
@@ -105,6 +124,17 @@ const taskPlugin = new Elysia({ prefix: "/job" })
 				cron: { job },
 			},
 			set,
+		}: {
+			store: {
+				cron: {
+					job: {
+						isStopped: () => boolean;
+					};
+				};
+			};
+			set: {
+				status: number;
+			};
 		}) => {
 			if (job.isStopped()) {
 				set.status = 400;
@@ -129,6 +159,16 @@ const taskPlugin = new Elysia({ prefix: "/job" })
 			store: {
 				cron: { job },
 			},
+		}: {
+			store: {
+				cron: {
+					job: {
+						isRunning: () => boolean;
+						isStopped: () => boolean;
+						nextRun: () => Date | null;
+					};
+				};
+			};
 		}) => ({
 			running: job.isRunning() ?? false,
 			stopped: job.isStopped() ?? false,
@@ -147,6 +187,18 @@ const taskPlugin = new Elysia({ prefix: "/job" })
 				cron: { job },
 			},
 			set,
+		}: {
+			store: {
+				cron: {
+					job: {
+						isRunning: () => boolean;
+						resume: () => void;
+					};
+				};
+			};
+			set: {
+				status: number;
+			};
 		}) => {
 			if (job.isRunning()) {
 				set.status = 400;
@@ -168,6 +220,18 @@ const taskPlugin = new Elysia({ prefix: "/job" })
 				cron: { job },
 			},
 			set,
+		}: {
+			store: {
+				cron: {
+					job: {
+						isRunning: () => boolean;
+						pause: () => void;
+					};
+				};
+			};
+			set: {
+				status: number;
+			};
 		}) => {
 			if (!job.isRunning()) {
 				set.status = 400;
@@ -184,7 +248,17 @@ const taskPlugin = new Elysia({ prefix: "/job" })
 	)
 	.post(
 		"/send",
-		async ({ set, body }) => {
+		async ({
+			set,
+			body,
+		}: {
+			set: {
+				status: number;
+			};
+			body?: {
+				url?: string;
+			};
+		}) => {
 			try {
 				const url = body?.url;
 				if (url) {
@@ -193,7 +267,7 @@ const taskPlugin = new Elysia({ prefix: "/job" })
 					await sendNextMessage(client);
 				}
 				return true;
-			} catch (err) {
+			} catch (err: unknown) {
 				set.status = 400;
 				logger.error(err);
 				return false;
@@ -217,7 +291,7 @@ const taskPlugin = new Elysia({ prefix: "/job" })
 	});
 const app = new Elysia()
 	.error({ BASIC_AUTH_ERROR: BasicAuthError })
-	.onError(({ error, code }) => {
+	.onError(({ error, code }: { error: Error; code: string }) => {
 		switch (code) {
 			case "BASIC_AUTH_ERROR":
 				return new Response(error.message, {
