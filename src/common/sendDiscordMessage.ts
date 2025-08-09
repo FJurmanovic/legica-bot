@@ -68,7 +68,6 @@ export async function sendDiscordMessage(
 			}
 		} catch (err) {
 			console.error(`Message to channel ${channel.id} failed.`);
-			throw err;
 		}
 	});
 	await Promise.all(promises);
