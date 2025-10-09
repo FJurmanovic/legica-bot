@@ -1,5 +1,5 @@
 # Use oven/bun as parent image
-FROM oven/bun:1.0.27
+FROM oven/bun:1.2.23
 
 # Change the working directory on the Docker image to /app
 WORKDIR /app
